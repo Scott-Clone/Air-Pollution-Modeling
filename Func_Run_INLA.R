@@ -2,9 +2,9 @@
 #library(rlist)
 
 # Make data frame to store results
-NO2_2005_day1_30 <- as.data.frame(matrix(nrow = 6364, ncol = 30))
-colnames(NO2_2005_day1_30) <- 1:30
-View(NO2_2005_day1_30)
+NO2_2005 <- as.data.frame(matrix(nrow = 6364, ncol = 30))
+colnames(NO2_2005) <- 1:30
+View(NO2_2005)
 for(i_day in 1:30){
   i_day <- i_day
   #load("CD_Toronto_X.RDA")
@@ -187,6 +187,6 @@ for(i_day in 1:30){
   lp_mean <- unlist(lapply(lp_marginals, function(x) inla.emarginal(exp, x)))
   
   #lp_grid_mean <- matrix(lp_mean, 86, 74, byrow = F)
-  NO2_2005_day1_30$i_day <- lp_mean
+  NO2_2005$i_day <- lp_mean
 }
 
