@@ -8,108 +8,106 @@ require(maptools)
 require(lattice)
 require(abind)
 
-library(rgdal)
+#library(rgdal)
 library(raster)
 
-# set the working directory for loading data and saving results
+# setwd("/media/carlone/CARLONE/Air_Quality_Project/r_code")
 
+setwd("/home/carlone/Air_Pollution_Mod/r_code")
+
+load("TO_borderN.RDA")
+load("TO_Pop_2016.RDA")
 load("Toronto_Data.RDA")
-load Data to be used
 load("TO_Out.RDA")
 load("CD_Toronto_X.RDA")
 load("TO_Border.RDA")
-#load("TO_borderN.RDA")
-#load("TO_grid.RDA")
-#load("NO2_Full.RDA")
+load("NO2_Full.RDA")
 
 TO_Mean <- function(x1, x2, days, data){
-
   
   # Make data frame to store results
-  Poll <- as.data.frame(matrix(nrow = length(Toronto_grid[,1]), ncol = days))
+  Poll <- as.data.frame(matrix(nrow = 3706, ncol = days)) #length(Toronto_grid[,1])
   colnames(Poll) <- 1:days
+  # Call data to be used
+  TO_Data <- data[x1:x2,]
   
-  for(i_day in 1:days){
-    i_day <- i_day
-    
-    # Call data to be used
-    TO_Data <- data[x1:x2,]
-    
-    Fix_TO_Data <- TO_Data[6:7]
-    Fix_TO_Data[] <- lapply(Fix_TO_Data, function(x) ifelse(is.na(x), mean(x, na.rm = TRUE), x))
-    TO_Data$WS <- Fix_TO_Data$WS
-    TO_Data$WD <- Fix_TO_Data$WD
-    
-    # Data for calc
-    Toronto_Data <- TO_Data
-    
-    # Prepare Borders for Toronto
-    TO_borders <- TO_border 
-    
-    # Prepare coordinates for stations
-    
-    #TO_coords <- CD_Toronto_X[c(3,4,8,11,12,13),1:3]
-    TO_coords <- CD_Toronto_X[c(3, 8, 12, 13), 1:3]
-    colnames(TO_coords) <- c("Station.ID", "UTMX", "UTMY")
-    
-    # Prepare Data for Pollutant
-    n_stations <- length(TO_coords[,1]) #number of stations NB data sparced
-    n_data <- length(Toronto_Data[,1]) #number of space-time data
-    n_days <- n_data/n_stations #number of time points
-    
-    rownames(TO_coords) <- 1:n_stations
-    TO_coords$Station.ID <- 1:n_stations
-    Toronto_Data$Station.ID <- rep(1:n_stations, n_days) 
-    
-    Toronto_Data$time <- rep(1:n_days, each = n_stations)
-    coords.allyear <- as.matrix(TO_coords[Toronto_Data$Station.ID, c("UTMX","UTMY")])
-    #dim(coords.allyear)
-    
-    # Standardize covariates and calculate log pollutant
-    Toronto_Data$logNO2 <- log(Toronto_Data$NO2)
-    mean_covariates <- apply(Toronto_Data[, 3:9], 2, mean, na.rm = TRUE)
-    sd_covariates <- apply(Toronto_Data[, 3:9], 2, sd, na.rm = TRUE)
-    Toronto_Data[, 3:9] <- scale(Toronto_Data[, 3:9],center = mean_covariates, 
-                                 scale = sd_covariates)
-    # Need to standardize Altitude separate as there isno sd (all stations are same elev)
-    Toronto_Data$A <- 173.4/100
+  Fix_TO_Data <- TO_Data[6:7]
+  Fix_TO_Data[] <- lapply(Fix_TO_Data, function(x) ifelse(is.na(x), mean(x, na.rm = TRUE), x))
+  TO_Data$WS <- Fix_TO_Data$WS
+  TO_Data$WD <- Fix_TO_Data$WD
+  
+  # Data for calc
+  Toronto_Data <- TO_Data
+  
+  # Prepare Borders for Toronto
+  TO_border <- TO_borderN
+  # Prepare coordinates for stations
+  
+  #TO_coords <- CD_Toronto_X[c(3,4,8,11,12,13),1:3]
+  TO_coords <- CD_Toronto_X[c(3, 8, 12, 13), 1:3]
+  colnames(TO_coords) <- c("Station.ID", "UTMX", "UTMY")
+  
+  # Prepare Data for Pollutant
+  n_stations <- length(TO_coords[,1]) #number of stations NB data sparced
+  n_data <- length(Toronto_Data[,1]) #number of space-time data
+  n_days <- n_data/n_stations #number of time points
+  
+  rownames(TO_coords) <- 1:n_stations
+  TO_coords$Station.ID <- 1:n_stations
+  Toronto_Data$Station.ID <- rep(1:n_stations, n_days) 
+  
+  Toronto_Data$time <- rep(1:n_days, each = n_stations)
+  coords.allyear <- as.matrix(TO_coords[Toronto_Data$Station.ID, c("UTMX","UTMY")])
+  #dim(coords.allyear)
+  
+  # Standardize covariates and calculate log pollutant
+  Toronto_Data$logNO2 <- log(Toronto_Data$NO2)
+  mean_covariates <- apply(Toronto_Data[, 3:9], 2, mean, na.rm = TRUE)
+  sd_covariates <- apply(Toronto_Data[, 3:9], 2, sd, na.rm = TRUE)
+  Toronto_Data[, 3:9] <- scale(Toronto_Data[, 3:9],center = mean_covariates, 
+                               scale = sd_covariates)
+  # Need to standardize Altitude separate as there isno sd (all stations are same elev)
+  Toronto_Data$A <- Toronto_Data$A/100
+  
+  Toronto_mesh <- inla.mesh.2d(loc=cbind(TO_coords$UTMX, TO_coords$UTMY),
+                               loc.domain = TO_border, max.edge= c(4000, 10000), 
+                               offset = c(300, 6000))  
+  
+  Toronto_grid <- makegrid(TO_Out, cellsize = 500, offset = c(-0.5, -4), pretty = TRUE) #TO_grid 
+  Toronto_grid <- as.data.frame(cbind(Toronto_grid$x1, Toronto_grid$x2))
+  colnames(Toronto_grid) <- c("UTMX_km", "UTMY_km")
+  #grid1 <- as.data.frame(cbind(TO_Pop_2016$x, TO_Pop_2016$y))
+  #colnames(grid1) <- c("UTMX_km", "UTMY_km")
+  #stat <- TO_coords[,2:3]
+  #colnames(stat) <- c("UTMX_km", "UTMY_km")
+  #Toronto_grid <- rbind(grid1, stat)
+  
+  Toronto_spde <- inla.spde2.matern(mesh = Toronto_mesh, alpha=2)
+  A_est <- inla.spde.make.A(mesh = Toronto_mesh,
+                            loc = coords.allyear,
+                            group = Toronto_Data$time,
+                            n.group = n_days)
+  
+  Toronto_spde <- inla.spde2.matern(mesh = Toronto_mesh, alpha=2)
+  A_est <- inla.spde.make.A(mesh = Toronto_mesh,
+                            loc = coords.allyear,
+                            group = Toronto_Data$time,
+                            n.group = n_days)
+  
+  s_index <- inla.spde.make.index(name = "spatial.field",
+                                  n.spde = Toronto_spde$n.spde,
+                                  n.group = n_days)
+  
+  stack_est <- inla.stack(data = list(logNO2 = Toronto_Data$logNO2),
+                          A = list(A_est, 1),
+                          effects = list(c(s_index, list(Intercept = 1)), 
+                                         list(Toronto_Data[,3:9])), tag = "est")
+  i_day <- days
+  Calc <- function(i_day){
     
     # Day for prediction i_day 
     which_date <- unique(Toronto_Data$Date)[i_day]
     print(paste("**---- You will get a prediction for ", which_date, "---**"))
-    
-    #Toronto_mesh <- inla.mesh.2d(loc=cbind(TO_coords$UTMX, TO_coords$UTMY),
-    #                             loc.domain = TO_border, max.edge= c(3000, 10000), 
-    #                             offset = c(400, 6000)) 
-    
-    Toronto_mesh <- inla.mesh.2d(loc=cbind(TO_coords$UTMX, TO_coords$UTMY),
-                                 loc.domain = TO_border, max.edge= c(4000, 10000), 
-                                 offset = c(300, 6000))  
-   
-    Toronto_grid <- makegrid(TO_Out, cellsize = 500, offset = c(-0.5, -4), pretty = TRUE) #TO_grid 
-    Toronto_grid <- as.data.frame(cbind(Toronto_grid$x1, Toronto_grid$x2))
-    colnames(Toronto_grid) <- c("UTMX_km", "UTMY_km")
-    
-    Toronto_spde <- inla.spde2.matern(mesh = Toronto_mesh, alpha=2)
-    A_est <- inla.spde.make.A(mesh = Toronto_mesh,
-                              loc = coords.allyear,
-                              group = Toronto_Data$time,
-                              n.group = n_days)
-    
-    Toronto_spde <- inla.spde2.matern(mesh = Toronto_mesh, alpha=2)
-    A_est <- inla.spde.make.A(mesh = Toronto_mesh,
-                              loc = coords.allyear,
-                              group = Toronto_Data$time,
-                              n.group = n_days)
-    
-    s_index <- inla.spde.make.index(name = "spatial.field",
-                                    n.spde = Toronto_spde$n.spde,
-                                    n.group = n_days)
-    
-    stack_est <- inla.stack(data = list(logNO2 = Toronto_Data$logNO2),
-                            A = list(A_est, 1),
-                            effects = list(c(s_index, list(Intercept = 1)), 
-                                           list(Toronto_Data[,3:9])), tag = "est")
     
     A_pred <- inla.spde.make.A(mesh = Toronto_mesh,
                                loc = as.matrix(Toronto_grid),
@@ -177,7 +175,9 @@ TO_Mean <- function(x1, x2, days, data){
     
     lp_mean <- unlist(lapply(lp_marginals, function(x) inla.emarginal(exp, x)))
     
-    Poll[,i_day] <- lp_mean
+    #Poll[,i_day] <- lp_mean
   }
-  Poll
+  
+  check <- sapply(1:i_day, Calc)
+  check
 }
