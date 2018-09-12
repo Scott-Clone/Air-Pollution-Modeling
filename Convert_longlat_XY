@@ -1,0 +1,13 @@
+# Function takes data frame of long lat points
+# Requires sp package
+Conv_longlat_XY <- function(data){
+  library(sp)
+  colnames(xy) <- c('lon', 'lat')
+  coordinates(xy) <- ~ lon + lat
+  proj4string(xy) <- CRS("+proj=longlat +datum=WGS84")
+  p <- spTransform(xy, CRS("+proj=tmerc +lat_0=0 +lon_0=-79.5 +k=0.9999 +x_0=304800 +y_0=0 +datum=NAD27 +units=m +no_defs +ellps=clrk66 +nadgrids=@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat"))
+  tran_cood <- coordinates(p)
+  colnames(tran_cood) <- c('x', 'y')
+  XY_Coords <- cbind(tran_cood[,1], tran_cood[,2]) 
+  XY_Coords
+}
