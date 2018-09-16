@@ -1,0 +1,29 @@
+Make_Naps <- function(data){
+  df.list <- data
+  df.list <- df.list[ ,-c(1, 6:8) ]
+  
+  names(df.list) <- c("NapsID", "Year", "Month", "Day", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9", "h10", "h11", 
+                      "h12", "h13", "h14", "h15", "h16", "h17", "h18", "h19", "h20", "h21", "h22", "h23", "h24")
+  df_Raw <- data.frame(df.list)
+  
+  df_Raw0 <- replace(df_Raw , df_Raw == -999, NA)
+  
+  
+  # Filterfor CD Station 3520 (Toronto Proper)
+  #
+  
+  test1 <- filter(df_Raw0, c(NapsID == "60401" | NapsID == "60403" | NapsID == "60410" |
+                               NapsID == "60413" | NapsID == "60417" | NapsID == "60418" | 
+                               NapsID =="60420" | NapsID == "60421" | NapsID == "60423" |
+                               NapsID == "60424" | NapsID == "60429" | NapsID == "60430" |
+                               NapsID == "60433" | NapsID =="60435"))
+  # Drop filter for canada wide data
+  
+  GTA <- test1  
+  #NO2_GTA <- NO2_GTA %>% separate(Date, c('Month', 'Day', 'Year'), sep = '/')
+  GTA$Date <- apply(GTA[ , c('Year', 'Month', 'Day') ] , 1 , paste , collapse = "-" )
+  GTA_1 <- GTA[,-c(2,3,4)]
+  GTA_1 <- GTA_1 %>% select(NapsID, Date, everything()) 
+  GTA_1$Date <- as.Date(GTA_1$Date)
+  GTA_1
+}
