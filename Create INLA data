@@ -1,0 +1,85 @@
+load("NO2_Canada_hly.RDA")
+load("TO_Weather.RDA")
+#CD_Toronto_X[c(3, 8, 12, 13),1:3])
+
+# Get Weather data as required 
+library(weathercan)
+
+# 2016 onwards
+Weather1 <- weather_dl(station_ids = 51459, start = "2005-01-01", end = "2015-12-31", 
+                       interval = "day", trim = TRUE, format = TRUE, string_as = NA, 
+                       tz_disp = NULL, stn = weathercan::stations, url = NULL, encoding = "UTF-8",
+                       list_col = FALSE, verbose = FALSE, quiet = FALSE)
+
+# Before 2016
+WC_2016 <- weather_dl(station_ids = 51459, start = "2016-01-01", end = "2016-12-31", 
+                      interval = "day", trim = TRUE, format = TRUE, string_as = NA, 
+                      tz_disp = NULL, stn = weathercan::stations, url = NULL, encoding = "UTF-8",
+                      list_col = FALSE, verbose = FALSE, quiet = FALSE)
+
+Make_Data <- function(df, WD, DN, Pol){
+ 
+   # Active Sites 60410, 60421,  60430, 60433
+  # Get each station
+  ID <- "60410"
+  S_410 <- df[,c("Date", "60410")]
+  S_410$Station <- rep(ID, length(S_410[,1]))
+  S_410$Poll <- S_410$`60410`
+  S_410 <- S_410[,c(1,3,4)]
+  
+  ID <- "60421"
+  S_421 <- df[,c("Date", "60421")]
+  S_421$Station <- rep(ID, length(S_421[,1]))
+  S_421$Poll <- S_421$`60421`
+  S_421 <- S_421[,c(1,3,4)]
+  
+  ID <- "60430"
+  S_430 <- df[,c("Date", "60430")]
+  S_430$Station <- rep(ID, length(S_430[,1]))
+  S_430$Poll <- S_430$`60430`
+  S_430 <- S_430[,c(1,3,4)]
+  
+  ID <- "60433"
+  S_433 <- df[,c("Date", "60433")]
+  S_433$Station <- rep(ID, length(S_433[,1]))
+  S_433$Poll <- S_433$`60433`
+  S_433 <- S_433[,c(1,3,4)]
+  
+  Dat <- rbind(S_410, S_421, S_430, S_433)
+  S_Data <- Dat[with(Dat, order(Date, Station)), ]
+  
+  d <- S_Data
+  for(i in 1:length(d$Date)){
+    if(d$Station[i] == "60410"){
+      d$x[i] = 322979.8
+      d$y[i] = 4845133
+    }
+    if(d$Station[i] == "60421"){
+      d$x[i] = 311405.5
+      d$y[i] = 4848851
+    }
+    if(d$Station[i] == "60430"){
+      d$x[i] = 301277.8 
+      d$y[i] = 4840834
+    }
+    if(d$Station[i] == "60433"){
+      d$x[i] = 313878.8
+      d$y[i] = 4835810
+    }
+  }
+  rownames(d) <- 1:length(d[,1])
+  W <- WD[,c(11,7,18,24,30,32)]
+  Weath <- W[rep(seq_len(nrow(W)), each=4),]
+  Data_Full <- cbind(d, Weath)
+  Data_Full <- Data_Full[,-6]
+  dtt <- Data_Full[,c(2, 1, 6, 4, 5, 9, 7, 10, 8, 3)]
+  colnames(dtt) <- c("Station.ID", "Date", "A", "UTMX", "UTMY", 
+                     "WS", "WD", "PREC", "TEMP", Pol) 
+  dtt
+}
+
+NO2_2016_Full <- Make_Data(df = N_2016, WD = WC_2016, Pol ="NO2")
+
+O3_2016_Full <- Make_Data(df = O_2016, WD = WC_2016, Pol ="O3")
+
+PM25_Full <- Make_Data(df = PM25_24hr_mean1, WD = Toronto_Weath, Pol ="PM25")
