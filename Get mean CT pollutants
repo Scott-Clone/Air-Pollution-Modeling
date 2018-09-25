@@ -1,0 +1,18 @@
+# This function takes as arguments mean pollutant data from INLA per year (or month) and returns 
+# mean pollutant data for each Census Tract (for Toronto) for the year (or month)
+
+Get_CT_mean <- function(data){
+  data <- as.data.frame(data[,1:length(data[1,])])
+  day <- length(data[1,])
+  rownames(data) <- 1:length(data[,1])
+  data$Num <- rownames(data)
+  P = as.data.frame(matrix(rep(NA, 572*(length(data[1,])-1)), nrow = 572, ncol = (length(data[1,])-1)))
+  
+  for(i in 1:572){
+    P1 <- data[data$Num %in% Pop_Over[[i]], ]
+    P1 <- P1[,1:(length(data[1,])-1)]
+    P[i,] <- t(apply(P1, MAR = 2, FUN = function(x) { mean(x, na.rm = TRUE) }))
+  }
+  colnames(P) <- 1:day
+  P
+}
