@@ -1,0 +1,163 @@
+# PM 2.5 All means
+
+#2006
+setwd("/home/carlone/Desktop/PM_mean_field/2006")
+PM_2006 <- Bind(file_names = as.list(dir(pattern="PM_2006")))
+rownames(PM_2006) <- 1:5332
+save(x = PM_2006, file = "PM_2006.RDA")
+
+#2007
+setwd("/home/carlone/Desktop/PM_mean_field/2007")
+PM_2007 <- Bind(file_names = as.list(dir(pattern="PM_2007")))
+rownames(PM_2007) <- 1:5332
+save(x = PM_2007, file = "PM_2007.RDA")
+
+#2008
+setwd("/home/carlone/Desktop/PM_mean_field/2008")
+PM_2008 <- Bind(file_names = as.list(dir(pattern="PM_2008")))
+rownames(PM_2008) <- 1:5332
+save(x = PM_2008, file = "PM_2008.RDA")
+
+#2009
+setwd("/home/carlone/Desktop/PM_mean_field/2009")
+PM_2009 <- Bind(file_names = as.list(dir(pattern="PM_2009")))
+rownames(PM_2009) <- 1:5332
+save(x = PM_2009, file = "PM_2009.RDA")
+
+#2010
+setwd("/home/carlone/Desktop/PM_mean_field/2010")
+PM_2010 <- Bind(file_names = as.list(dir(pattern="PM_2010")))
+rownames(PM_2010) <- 1:5332
+save(x = PM_2010, file = "PM_2010.RDA")
+
+#2011
+setwd("/home/carlone/Desktop/PM_mean_field/2011")
+PM_2011 <- Bind(file_names = as.list(dir(pattern="PM_2011")))
+rownames(PM_2011) <- 1:5332
+save(x = PM_2011, file = "PM_2011.RDA")
+
+#2012
+setwd("/home/carlone/Desktop/PM_mean_field/2012")
+PM_2012 <- Bind(file_names = as.list(dir(pattern="PM_2012")))
+rownames(PM_2012) <- 1:5332
+save(x = PM_2012, file = "PM_2012.RDA")
+
+#2013
+setwd("/home/carlone/Desktop/PM_mean_field/2013")
+PM_2013 <- Bind(file_names = as.list(dir(pattern="PM_2013")))
+rownames(PM_2013) <- 1:5332
+save(x = PM_2013, file = "PM_2013.RDA")
+
+#2014
+setwd("/home/carlone/Desktop/PM_mean_field/2014")
+PM_2014 <- Bind(file_names = as.list(dir(pattern="PM_2014")))
+rownames(PM_2014) <- 1:5332
+save(x = PM_2014, file = "PM_2014.RDA")
+
+#2015
+setwd("/home/carlone/Desktop/PM_mean_field/2015")
+PM_2015 <- Bind(file_names = as.list(dir(pattern="PM_2015")))
+rownames(PM_2015) <- 1:5332
+save(x = PM_2015, file = "PM_2015.RDA")
+
+#2016
+setwd("/home/carlone/Desktop/PM_mean_field/2016")
+PM_2016 <- Bind(file_names = as.list(dir(pattern="PM_2016")))
+rownames(PM_2016) <- 1:5332
+save(x = PM_2016, file = "PM_2016.RDA")
+
+PM2.5 <- cbind(PM_2006, PM_2007, PM_2008, PM_2009, PM_2010, PM_2011, PM_2012, PM_2013,
+                PM_2014, PM_2015, PM_2016)
+length(PM2.5[1,])
+
+PM_06 <- Get_CT_mean(PM_2006) * (Pop$Population_2006 / sum(Pop$Population_2006, na.rm = T))
+View(PM_06[,1])
+
+ccc <- Get_CT_mean(PM_2007)
+View(ccc[,1])
+
+i = 572
+ddd <- sapply(1:i, function(i){PM_07[,i] * (Pop$Population_2007/sum(Pop$Population_2007, na.rm = T))})
+View(ddd)
+
+
+v <- Pop$Population_2007/sum(Pop$Population_2007, na.rm = T)
+View(v)
+v[2]* PM_07[2,1]
+
+d <- PM_07 * (Pop$Population_2007/sum(Pop$Population_2007, na.rm = T))
+sum(d[,1], na.rm = T)
+vvv <- (Pop$Population_2007 %*% (1/ sum(Pop$Population_2007, na.rm = T)))
+View(d[,1])
+
+
+View(PM_06)
+PM_06 <- as.data.frame(apply(X = (Get_CT_mean(PM_2006) * (Pop$Population_2006 / sum(Pop$Population_2006, na.rm = T))), 
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_06) <- "PM_2.5"
+PM_07 <- as.data.frame(apply(X = (Get_CT_mean(PM_2007) * (Pop$Population_2007 / sum(Pop$Population_2007, na.rm = T))),
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_07) <- "PM_2.5"
+PM_08 <- as.data.frame(apply(X = (Get_CT_mean(PM_2008) * (Pop$Population_2008 / sum(Pop$Population_2008, na.rm = T))),
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_08) <- "PM_2.5"
+PM_09 <- as.data.frame(apply(X = (Get_CT_mean(PM_2009) * (Pop$Population_2009 / sum(Pop$Population_2009, na.rm = T))),
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_09) <- "PM_2.5"
+PM_10 <- as.data.frame(apply(X = (Get_CT_mean(PM_2010) * (Pop$Population_2010 / sum(Pop$Population_2010, na.rm = T))),
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_10) <- "PM_2.5"
+PM_11 <- as.data.frame(apply(X = (Get_CT_mean(PM_2011) * (Pop$Population_2011 / sum(Pop$Population_2011, na.rm = T))),
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_11) <- "PM_2.5"
+PM_12 <- as.data.frame(apply(X = (Get_CT_mean(PM_2012) * (Pop$Population_2012 / sum(Pop$Population_2012, na.rm = T))), 
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_12) <- "PM_2.5"
+PM_13 <- as.data.frame(apply(X = (Get_CT_mean(PM_2013) * (Pop$Population_2013 / sum(Pop$Population_2013, na.rm = T))),
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_13) <- "PM_2.5"
+PM_14 <- as.data.frame(apply(X = (Get_CT_mean(PM_2014) * (Pop$Population_2014 / sum(Pop$Population_2014, na.rm = T))), 
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_14) <- "PM_2.5"
+PM_15 <- as.data.frame(apply(X = (Get_CT_mean(PM_2015) * (Pop$Population_2015 / sum(Pop$Population_2015, na.rm = T))), 
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_15) <- "PM_2.5"
+PM_16 <- as.data.frame(apply(X = (Get_CT_mean(PM_2016) * (Pop$Population_2016 / sum(Pop$Population_2016, na.rm = T))), 
+                             MARGIN = 2, FUN = function(x) { sum(x, na.rm = TRUE) }))
+colnames(PM_16) <- "PM_2.5"
+
+
+View(PM_06[,300])
+str(PM_07)
+PM2.5 <- rbind(PM_06, PM_07, PM_08, PM_09, PM_10, PM_11, PM_12, PM_13, PM_14, PM_15, PM_16)
+length(PM2.5[,1])
+plot(x = PM25_Data$Date[1:730], y = PM2.5[1:730,1], type = "l")
+points(x = PM25_Data$Date[1:730], PM25_Data$PM25[1:730], type = "l", col = "blue")
+uu <- as.data.frame(apply(PM2.5, MAR = 2, FUN = function(x) {sum(x, na.rm = TRUE) }))
+PM25_mean <- uu
+length(PM2.5[,1])
+
+save(PM25_mean)
+plot(uu[,1])
+##################
+
+PMM_06 <- as.data.frame(Field_mean(PM_2006))
+PMM_07 <- as.data.frame(Field_mean(PM_2007))
+PMM_08 <- as.data.frame(Field_mean_L(PM_2008))
+PMM_09 <- as.data.frame(Field_mean(PM_2009))
+PMM_10 <- as.data.frame(Field_mean(PM_2010))
+PMM_11 <- as.data.frame(Field_mean(PM_2011))
+PMM_12 <- as.data.frame(Field_mean_L(PM_2012))
+PMM_13 <- as.data.frame(Field_mean(PM_2013))
+PMM_14 <- as.data.frame(Field_mean(PM_2014))
+PMM_15 <- as.data.frame(Field_mean(PM_2015))
+PMM_16 <- as.data.frame(Field_mean_L(PM_2016))
+
+plot(x = PM25_Data$Date, y = PM_Mean[,1])
+PM_Mean <- rbind(PMM_06, PMM_07, PMM_08, PMM_09, PMM_10, PMM_11,
+                 PMM_12, PMM_13, PMM_14, PMM_15, PMM_16)
+colnames(O3_Mean) <- "O3 Field mean"
+View(PM_Mean)
+
+
+View(PM_2.5_Comp)
