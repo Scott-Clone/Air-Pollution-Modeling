@@ -68,6 +68,7 @@ TO_Mean <- function(x1, x2, days, data){
                                scale = sd_covariates)
   # Need to standardize Altitude separate as there isno sd (all stations are same elev)
   Toronto_Data$A <- Toronto_Data$A/100
+  # change mesh to low dimension
   
   Toronto_mesh <- inla.mesh.2d(loc=cbind(TO_coords$UTMX, TO_coords$UTMY),
                                loc.domain = TO_border, max.edge= c(4000, 10000), 
