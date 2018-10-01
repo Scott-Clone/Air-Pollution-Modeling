@@ -1,0 +1,177 @@
+# PM25
+
+require(INLA)
+inla.setOption(scale.model.default=FALSE)
+
+require(splancs)
+require(sp)
+require(fields)
+require(maptools)
+require(lattice)
+require(abind)
+
+#library(rgdal)
+library(raster)
+require(imputeTS)
+
+# setwd("/media/carlone/CARLONE/Air_Quality_Project/r_code")
+
+setwd("/home/carlone/Air_Pollution_Mod/r_code")
+
+load("PM25_Full.RDA")
+load("TO_Out.RDA")
+load("CD_Toronto_X.RDA")
+load("TO_grid.RDA")
+load("TO_borderN.RDA")
+# load("NO2_Full.RDA")
+#load("Toronto_Data.RDA")
+#load("TO_Pop_2016.RDA")
+#load("CT_XYmn_16.RDA")
+
+TO_Mean <- function(x1, x2, days, data){
+  
+  # Make data frame to store results
+  Poll <- as.data.frame(matrix(nrow = 5332, ncol = days)) #length(Toronto_grid[,1])
+  colnames(Poll) <- 1:days
+  # Call data to be used
+  TO_Data <- data[x1:x2,]
+  
+  Fix_TO_Data <- TO_Data[,c(6:7, 10)]
+  Fix_TO_Data[] <- lapply(Fix_TO_Data, function(x){na.ma(x, k = 4, weighting = "linear")})
+  TO_Data$WS <- Fix_TO_Data$WS
+  TO_Data$WD <- Fix_TO_Data$WD
+  TO_Data$O3 <- Fix_TO_Data$PM25
+  
+  # Data for calc
+  Toronto_Data <- TO_Data
+  
+  # Prepare Borders for Toronto
+  TO_border <- TO_borderN
+  # Prepare coordinates for stations
+  
+  #TO_coords <- CD_Toronto_X[c(3,4,8,11,12,13),1:3]
+  TO_coords <- CD_Toronto_X[c(3, 8, 12, 13), 1:3]
+  colnames(TO_coords) <- c("Station.ID", "UTMX", "UTMY")
+  
+  # Prepare Data for Pollutant
+  n_stations <- length(TO_coords[,1]) #number of stations NB data sparced
+  n_data <- length(Toronto_Data[,1]) #number of space-time data
+  n_days <- n_data/n_stations #number of time points
+  
+  rownames(TO_coords) <- 1:n_stations
+  TO_coords$Station.ID <- 1:n_stations
+  Toronto_Data$Station.ID <- rep(1:n_stations, n_days) 
+  
+  Toronto_Data$time <- rep(1:n_days, each = n_stations)
+  coords.allyear <- as.matrix(TO_coords[Toronto_Data$Station.ID, c("UTMX","UTMY")])
+  #dim(coords.allyear)
+  
+  # Standardize covariates and calculate log pollutant
+  Toronto_Data$logPM25 <- log(Toronto_Data$PM25)
+  mean_covariates <- apply(Toronto_Data[, 3:9], 2, mean, na.rm = TRUE)
+  sd_covariates <- apply(Toronto_Data[, 3:9], 2, sd, na.rm = TRUE)
+  Toronto_Data[, 3:9] <- scale(Toronto_Data[, 3:9],center = mean_covariates, 
+                               scale = sd_covariates)
+  # Need to standardize Altitude separate as there isno sd (all stations are same elev)
+  Toronto_Data$A <- Toronto_Data$A/100
+  
+  Toronto_mesh <- inla.mesh.2d(loc=cbind(TO_coords$UTMX, TO_coords$UTMY),
+                               loc.domain = TO_border, max.edge= c(7500, 25000), 
+                               offset = c(100, 20000)) 
+  
+  Toronto_grid <- TO_grid
+  colnames(Toronto_grid) <- c("UTMX_km", "UTMY_km")
+  
+  Toronto_spde <- inla.spde2.matern(mesh = Toronto_mesh, alpha=2)
+  A_est <- inla.spde.make.A(mesh = Toronto_mesh,
+                            loc = coords.allyear,
+                            group = Toronto_Data$time,
+                            n.group = n_days)
+
+  s_index <- inla.spde.make.index(name = "spatial.field",
+                                  n.spde = Toronto_spde$n.spde,
+                                  n.group = n_days)
+  
+  stack_est <- inla.stack(data = list(logPM25 = Toronto_Data$logPM25),
+                          A = list(A_est, 1),
+                          effects = list(c(s_index, list(Intercept = 1)), 
+                                         list(Toronto_Data[,3:9])), tag = "est")
+  i_day <- days
+  Calc <- function(i_day){
+    
+    # Day for prediction i_day 
+    which_date <- unique(Toronto_Data$Date)[i_day]
+    print(paste("**---- You will get a prediction for ", which_date, "---**"))
+    
+    A_pred <- inla.spde.make.A(mesh = Toronto_mesh,
+                               loc = as.matrix(Toronto_grid),
+                               group = i_day,  #selected day for prediction
+                               n.group = n_days)
+    
+    cov_matrix_std <- as.data.frame(cbind(rep(Toronto_Data[i_day,3], length(Toronto_grid[,1])),
+                                          rep(Toronto_Data[i_day,4], length(Toronto_grid[,1])),
+                                          rep(Toronto_Data[i_day,5], length(Toronto_grid[,1])),
+                                          rep(Toronto_Data[i_day,6], length(Toronto_grid[,1])),
+                                          rep(Toronto_Data[i_day,7], length(Toronto_grid[,1])),
+                                          rep(Toronto_Data[i_day,8], length(Toronto_grid[,1])),
+                                          rep(Toronto_Data[i_day,9], length(Toronto_grid[,1]))))
+    
+    colnames(cov_matrix_std) <- colnames(Toronto_Data[,3:9])
+    
+    stack_pred <- inla.stack(data = list(logPM25 = NA),
+                             A = list(A_pred, 1),
+                             effects = list(c(s_index, list(Intercept = 1)), 
+                                            list(cov_matrix_std)), tag="pred") #?????
+    
+    stack <- inla.stack(stack_est, stack_pred)
+    
+    inla(y ~ 1, data = data.frame(y = 1:9))
+    formula <- logPM25 ~ -1 + Intercept + UTMX + UTMY + WS + A + WD + PREC + TEMP + 
+      f(spatial.field, model = Toronto_spde, group = spatial.field.group, 
+        control.group = list(model = "ar1"))
+    
+    # Long runtime!
+    output <- inla(formula, data = inla.stack.data(stack, spde = Toronto_spde),
+                   family = "gaussian", verbose = T,
+                   control.predictor = list(A = inla.stack.A(stack), compute = TRUE))  
+    
+    # Fixed effects betas
+    fixed.out <- round(output$summary.fixed, 3)
+    
+    # Hyperparameters sigma2eps and AR(1) a
+    rownames(output$summary.hyperpar)
+    
+    sigma2e_marg <- inla.tmarginal(function(x) 1/x,output$marginals.hyperpar[[1]])
+    sigma2e_m1 <- inla.emarginal(function(x) x, sigma2e_marg)
+    sigma2e_m2 <- inla.emarginal(function(x) x^2, sigma2e_marg)
+    sigma2e_stdev <- sqrt(sigma2e_m2 - sigma2e_m1^2)
+    sigma2e_quantiles <- inla.qmarginal(c(0.025, 0.5, 0.975), sigma2e_marg)
+    
+    ar <- output$summary.hyperpar["GroupRho for spatial.field",]
+    
+    # Spatial parameters sigma2 and range
+    mod.field <- inla.spde2.result(output, name="spatial.field", Toronto_spde)
+    
+    var.nom.marg <- mod.field$marginals.variance.nominal[[1]]
+    var.nom.m1 <- inla.emarginal(function(x) x, var.nom.marg)
+    var.nom.m2 <- inla.emarginal(function(x) x^2, var.nom.marg)
+    var.nom.stdev <- sqrt(var.nom.m2 - var.nom.m1^2)
+    var.nom.quantiles <- inla.qmarginal(c(0.025, 0.5, 0.975), var.nom.marg)
+    
+    range.nom.marg <- mod.field$marginals.range.nominal[[1]]
+    range.nom.m1 <- inla.emarginal(function(x) x, range.nom.marg)
+    range.nom.m2 <- inla.emarginal(function(x) x^2, range.nom.marg)
+    range.nom.stdev <- sqrt(range.nom.m2 - range.nom.m1^2)
+    range.nom.quantiles <- inla.qmarginal(c(0.025, 0.5, 0.975), range.nom.marg)
+    
+    index_pred <- inla.stack.index(stack,"pred")$data
+    lp_marginals <- output$marginals.linear.predictor[index_pred]
+    
+    lp_mean <- unlist(lapply(lp_marginals, function(x) inla.emarginal(exp, x)))
+    
+    #Poll[,i_day] <- lp_mean
+  }
+  
+  check <- sapply(1:i_day, Calc)
+  check
+}
