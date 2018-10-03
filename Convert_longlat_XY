@@ -1,4 +1,4 @@
-# Function takes data frame of long lat points
+# Function takes data frame of long lat points and produces a data frame with X,Y UTM coordinates
 # Requires sp package
 Conv_longlat_XY <- function(data){
   library(sp)
