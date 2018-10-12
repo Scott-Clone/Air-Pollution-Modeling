@@ -3,6 +3,7 @@ load("TO_Weather.RDA")
 #CD_Toronto_X[c(3, 8, 12, 13),1:3])
 
 # Get Weather data as required 
+# load required library
 library(weathercan)
 
 # 2016 onwards
@@ -19,7 +20,7 @@ WC_2016 <- weather_dl(station_ids = 51459, start = "2016-01-01", end = "2016-12-
 
 Make_Data <- function(df, WD, DN, Pol){
  
-   # Active Sites 60410, 60421,  60430, 60433
+  # Active Sites 60410, 60421,  60430, 60433
   # Get each station
   ID <- "60410"
   S_410 <- df[,c("Date", "60410")]
