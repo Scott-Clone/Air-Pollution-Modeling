@@ -59,21 +59,11 @@ for(i_day in 1:30){
   
   which_date <- unique(Toronto_Data$Date)[i_day]
   print(paste("**---- You will get a prediction for ", which_date, "---**"))
-  
-  # Toronto_mesh <- inla.mesh.2d(loc=cbind(TO_coords$UTMX, TO_coords$UTMY),
-  #                             loc.domain = TO_border, max.edge= c(2000, 3500), 
-  #                             offset = c(400, 5000))  
-  
+   
   Toronto_mesh <- inla.mesh.2d(loc=cbind(TO_coords$UTMX, TO_coords$UTMY),
                                loc.domain = TO_border, max.edge= c(4000, 10000), 
                                offset = c(300, 6000))  
-  # Make Toronto_grid <- grid
-  #load("TO_map.RDA")
-  #dd <- subset(TO_map, TO_map$FCODE_DESC == "Major Shoreline" | TO_map$FCODE_DESC == "Geostatistical line")
-  
-  #Toronto_grid1 <- makegrid(dd, cellsize = 500, offset = c(-0.5, -4), pretty = TRUE)
-  #length(Toronto_grid1$x1)
-  # 74* 86
+
   Toronto_grid <- makegrid(TO_Out, cellsize = 500, offset = c(-0.5, -4), pretty = TRUE)
   
   Toronto_grid <- as.data.frame(cbind(Toronto_grid$x1, Toronto_grid$x2))
