@@ -1,3 +1,4 @@
+# This file transforms NAPS raw data from .hly version to usable data frame.
 Make_Naps <- function(data){
   df.list <- data
   df.list <- df.list[ ,-c(1, 6:8) ]
