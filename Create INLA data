@@ -1,3 +1,4 @@
+# load required data
 load("NO2_Canada_hly.RDA")
 load("TO_Weather.RDA")
 #CD_Toronto_X[c(3, 8, 12, 13),1:3])
