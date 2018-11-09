@@ -11,3 +11,5 @@ Conv_longlat_XY <- function(data){
   XY_Coords <- cbind(tran_cood[,1], tran_cood[,2]) 
   XY_Coords
 }
+
+# result <- Conv_longlat_XY(data)
