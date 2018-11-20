@@ -1,6 +1,6 @@
 # This function takes as arguments mean pollutant data from INLA per year (or month) and returns 
 # mean pollutant data for each Census Tract (for Toronto) for the year (or month)
-# Need to add stop if not cases and error messages
+# Need to add stop if not cases and error messages ..
 
 Get_CT_mean <- function(data){
   data <- as.data.frame(data[,1:length(data[1,])])
