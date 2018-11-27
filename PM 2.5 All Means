@@ -1,4 +1,4 @@
-# PM 2.5 All means calculates means 
+# PM 2.5 All means calculates means by year
 
 #2006
 setwd("/home/carlone/Desktop/PM_mean_field/2006")
