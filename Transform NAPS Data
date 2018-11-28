@@ -1,5 +1,5 @@
 # This file transforms NAPS raw data from .hly version to usable data frame.
-# explain code names
+# add explanations for CD etc
 
 Make_Naps <- function(data){
   df.list <- data
