@@ -30,3 +30,5 @@ Make_Naps <- function(data){
   GTA_1$Date <- as.Date(GTA_1$Date)
   GTA_1
 }
+
+# result <- Make_Naps()
