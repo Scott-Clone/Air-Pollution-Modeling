@@ -1,3 +1,5 @@
+# This function loads multiple files and binds them
+
 Bind <- function(file_names){
   l_F <- lapply(file_names, load, .GlobalEnv)
   b <- cbind(get(l_F[[5]]), get(l_F[[4]]), get(l_F[[8]]), get(l_F[[1]]), get(l_F[[9]]), 
