@@ -1,4 +1,4 @@
-
+olm
 #library(rlist)
 
 # Make data frame to store results
@@ -26,7 +26,6 @@ for(i_day in 1:30){
   
   # Prepare Borders for Toronto
   TO_borders <- TO_border 
-  
   
   # Prepare coordinates for stations
   TO_coords <- CD_Toronto_X[c(3,4,8,11,12,13),1:3]
@@ -56,7 +55,6 @@ for(i_day in 1:30){
   Toronto_Data$A <- 173.4/100
  
   # Extract the standardized covariate for day i_day (you get a 56X72X8 matrix)
-  
   which_date <- unique(Toronto_Data$Date)[i_day]
   print(paste("**---- You will get a prediction for ", which_date, "---**"))
    
@@ -101,9 +99,6 @@ for(i_day in 1:30){
                              loc = as.matrix(Toronto_grid), #?????
                              group = i_day,  #selected day for prediction
                              n.group = n_days)
-  #Toronto_Data[i_day,]
-  #View(Toronto_Data[3:9])
-  
   # cov_matrix_std <- as.data.frame(cbind(rep(Toronto_Data[i_day,3], length(Toronto_grid$x1)),
   #                                      rep(Toronto_Data[i_day,4], length(Toronto_grid$x1)),
   #                                      rep(Toronto_Data[i_day,5], length(Toronto_grid$x1)),
