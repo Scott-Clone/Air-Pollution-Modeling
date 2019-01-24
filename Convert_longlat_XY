@@ -1,5 +1,6 @@
-# Function takes data frame of long lat points and produces a data frame with X,Y UTM coordinates
-# Requires sp package
+# Function takes data frame of long lat points and produces a data frame with X,Y UTM (Universal Transverse Mercator) coordinates
+# Requires sp package 
+
 Conv_longlat_XY <- function(data){
   library(sp)
   colnames(xy) <- c('lon', 'lat')
