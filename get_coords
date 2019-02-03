@@ -1,6 +1,6 @@
 # Carlone Scott 
 # function gets coordinates from spatial data frame of class sp
-# This function retrieves the coordinates from the spatial data frame of Toronto City Map.
+# This function retrieves the coordinates from the spatial data frame map (Toronto City in this project).
 
 get_coords <- function(x){
   s <- vector()
