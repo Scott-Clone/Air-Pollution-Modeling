@@ -1,5 +1,5 @@
 # PM 2.5 All means calculates means by year
-# write in full function
+# write in full function for easy automation
 
 #2006
 setwd("/home/carlone/Desktop/PM_mean_field/2006")
