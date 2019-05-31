@@ -9,6 +9,7 @@ Make_Naps <- function(data){
                       "h12", "h13", "h14", "h15", "h16", "h17", "h18", "h19", "h20", "h21", "h22", "h23", "h24")
   df_Raw <- data.frame(df.list)
   
+  #Replace -999 in data with NA
   df_Raw0 <- replace(df_Raw , df_Raw == -999, NA)
   
   
